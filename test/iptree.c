@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include "iptree.h"
 
+/* Based off Franck Bui-Huu's libtree code: https://github.com/fbuihuu/libtree
+ * Licensed under the terms of the LGPL */
+
 #define POSITIVE(x) ((x) > 0)
 
 static inline int ipnode_get_color(ip_node_t* node)

@@ -5,6 +5,9 @@
 #define IP_TREE_BLACK 0
 #define IP_TREE_RED   1
 
+/* Based off Franck Bui-Huu's libtree code: https://github.com/fbuihuu/libtree
+ * Licensed under the terms of the LGPL */
+
 /* use a specialized red-black tree for storing ip addresses so that we can get
  * back out a sorted list of them.
  */

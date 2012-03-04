@@ -32,4 +32,11 @@ struct ip_tree
     ip_node_t* root;
 } __attribute__((aligned));
 
+
+void iptree_add_addr(uint32_t addr, ip_tree_t* tree);
+size_t iptree_get_sorted(ip_tree_t* tree, uint32_t* elems);
+ip_tree_t* iptree_new();
+ip_node_t* iptree_find(ip_node_t* key, ip_tree_t* tree);
+int iptree_addr_exists(uint32_t addr, ip_tree_t* tree);
+
 #endif

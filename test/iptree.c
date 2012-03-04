@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "iptree.h"
 
 /* Based off Franck Bui-Huu's libtree code: https://github.com/fbuihuu/libtree
@@ -152,6 +153,12 @@ ip_node_t* iptree_find(ip_node_t* key, ip_tree_t* tree)
     return ipnode_lookup(key, tree, &parent, &is_left);
 }
 
+int iptree_addr_exists(uint32_t addr, ip_tree_t* tree)
+{
+    ip_node_t key = {NULL,NULL,addr,0};
+    return (NULL != (iptree_find(&key,tree)));
+}
+
 static void ipnode_set_child(ip_node_t* child, ip_node_t* node, int left)
 {
     if(left) node->left = child;
@@ -256,4 +263,15 @@ void iptree_add_addr(uint32_t addr, ip_tree_t* tree)
 {
     ip_node_t* node = ipnode_new(addr);
     iptree_insert(node, tree);
+}
+
+size_t iptree_get_sorted(ip_tree_t* tree, uint32_t* elems)
+{
+    ip_node_t* node = tree->first;
+    size_t count = 0;
+    for(; node; node = iptree_next(node))
+    {
+        elems[count++] = node->ipaddr;
+    }
+    return count;
 }

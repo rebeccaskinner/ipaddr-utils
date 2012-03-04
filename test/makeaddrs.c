@@ -12,18 +12,16 @@
 #include <fcntl.h>
 #include <time.h>
 #include "addr_utils.h"
-
-static void init() __attribute__((constructor));
+#include "iptree.h"
 
 static int output_fd;
 
 #define BUFFER_SIZE 5000
 
-static void init()
-{
-    srand(time(NULL));
-}
-static int parse_args(int argc, char** argv, uint32_t* restrict addr, uint8_t* restrict subnet)
+static int parse_args(int argc,
+                      char** argv,
+                      uint32_t* restrict addr,
+                      uint8_t* restrict subnet)
 {
     if(argc != 4 || !argv || !argv[1] || !argv[2] || !argv[3])
     {
@@ -37,7 +35,7 @@ static int parse_args(int argc, char** argv, uint32_t* restrict addr, uint8_t* r
     *addr = string_to_addr(addr_s);
     *addr = apply_subnet(*addr, *subnet);
     mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-    output_fd = open(argv[3],O_CREAT | O_WRONLY, mode);
+    output_fd = open(argv[3],O_CREAT | O_TRUNC | O_WRONLY, mode);
     if(-1 == output_fd)
     {
         printf("Error: could not open output file: %s\n",strerror(errno));
@@ -70,13 +68,28 @@ int main(int argc, char** argv)
     uint32_t addr;
     uint8_t  subnet;
     int count = parse_args(argc, argv, &addr, &subnet);
-    if(-1 == count) return 1;
+    ip_tree_t* tree = iptree_new();
 
-    printf("size of a /%hhu subnet is %d addresses\n",subnet,subnet_size(subnet));
+    srand(time(NULL));
 
-    while(count--)
+    if(0 >= count) return 1;
+
+    uint32_t* addr_sorted = malloc(count * sizeof(uint32_t));
+    memset(addr_sorted,0,count * sizeof(uint32_t));
+
+    for(int i = count; i; i--)
     {
-        buffered_writer(make_random_addr(addr,subnet),0);
+        uint32_t raddr = make_random_addr(addr,subnet);
+        iptree_add_addr(raddr,tree);
+    }
+
+    uint32_t unique_addrs = iptree_get_sorted(tree,addr_sorted);
+    write(output_fd,&unique_addrs,sizeof(uint32_t));
+
+    for(size_t i = 0; i < unique_addrs; i++)
+    {
+        printf("%s\n",addr_to_string(addr_sorted[i]));
+        buffered_writer(addr_sorted[i],0);
     }
 
     buffered_writer(0,1);

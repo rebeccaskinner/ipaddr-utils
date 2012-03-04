@@ -38,7 +38,9 @@ uint32_t make_noncolliding_addr(uint32_t mask, uint8_t subnet, ip_tree_t* tree)
 {
     uint32_t addr = make_random_addr(mask, subnet);
     while(iptree_addr_exists(addr,tree))
+    {
         addr = make_random_addr(mask, subnet);
+    }
 
     return addr;
 }

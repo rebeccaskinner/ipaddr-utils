@@ -259,10 +259,10 @@ ip_node_t* ipnode_new(uint32_t addr)
     return node;
 }
 
-void iptree_add_addr(uint32_t addr, ip_tree_t* tree)
+int iptree_add_addr(uint32_t addr, ip_tree_t* tree)
 {
     ip_node_t* node = ipnode_new(addr);
-    iptree_insert(node, tree);
+    return (NULL == iptree_insert(node, tree));
 }
 
 size_t iptree_get_sorted(ip_tree_t* tree, uint32_t* elems)

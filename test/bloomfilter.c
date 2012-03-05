@@ -37,28 +37,24 @@ static uint32_t murmur_hash(uint32_t k, uint32_t seed)
     return h % BLOOMFILTER_NUM_BITS;
 }
 
-static uint32_t* make_k_hashes(uint32_t addr, uint32_t k)
+static void make_k_hashes(uint32_t addr, uint32_t* hashes, uint32_t k)
 {
-    uint32_t* hashes = malloc(k * sizeof(uint32_t));
-    memset(hashes,0,k*sizeof(uint32_t));
     uint32_t h1 = murmur_hash(addr,0);
     for(unsigned i = 0; i < k; i++)
     {
         h1 = murmur_hash(addr, h1);
         hashes[i] = h1;
     }
-
-    return hashes;
 }
 
 static void bloomfilter_insert_k(bloomfilter_t* bf, uint32_t addr, uint32_t k)
 {
-    uint32_t* hashes = make_k_hashes(addr,k);
+    uint32_t hashes[BLOOMFILTER_NUM_HASHES];
+    make_k_hashes(addr,hashes,k);
     for(unsigned i = 0; i < k; i++)
     {
         BLOOMFILTER_SET_BIT(bf,hashes[i]);
     }
-    free(hashes);
 }
 
 void bloomfilter_insert(bloomfilter_t* bf, uint32_t addr)
@@ -68,7 +64,9 @@ void bloomfilter_insert(bloomfilter_t* bf, uint32_t addr)
 
 int bloomfilter_check_k(bloomfilter_t* bf, uint32_t addr, uint32_t k)
 {
-    uint32_t* hashes = make_k_hashes(addr,k);
+    uint32_t hashes[BLOOMFILTER_NUM_HASHES];
+    make_k_hashes(addr,hashes,k);
+
     for(unsigned i = 0; i < k; i++)
     {
         if(!BLOOMFILTER_GET_BIT(bf,hashes[i]))

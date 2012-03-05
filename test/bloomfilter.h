@@ -2,16 +2,13 @@
 #define __BLOOMFILTER_H__
 #include <stdint.h>
 
-#define BLOOMFILTER_NUM_INTS (4096)
-
 #ifndef BLOOMFILTER_NUM_INTS
-    #define BLOOMFILTER_NUM_INTS    (512U)
+    #define BLOOMFILTER_NUM_INTS (4096 * 24)
 #endif
 
 #ifndef BLOOMFILTER_NUM_HASHES
-    #define BLOOMFILTER_NUM_HASHES (3)
+    #define BLOOMFILTER_NUM_HASHES (5)
 #endif
-
 
 #define BLOOMFILTER_NUM_BYTES   (BLOOMFILTER_NUM_INTS * sizeof(uint32_t))
 #define BLOOMFILTER_NUM_BITS    (8U * BLOOMFILTER_NUM_BYTES)

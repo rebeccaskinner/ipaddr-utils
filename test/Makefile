@@ -9,6 +9,8 @@ CFLAGS= -std=gnu99 \
 	-g \
 	-ggdb \
 	-mtune=native \
+	-ftree-vectorizer-verbose=5\
+	-ftree-vectorize\
 	-flto
 
 LFLAGS= -flto

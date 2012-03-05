@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set1=$1
+set2=$2
+count1=$3
+count2=$4
+
+./makeaddrs '0.0.0.0/0' $count1 $set1
+./makenoncolliding $set1 $set2 $count2

@@ -136,24 +136,24 @@ int main(int argc, char** argv)
     ip_tree_t* tree  = load_tree(argv[1],&num_addrs);
     ip_tree_t* tree2 = load_tree(argv[2],&tree2_size);
 
-    printf("checking uniqueness in ip lists...\n");
-    if(validate_tree_uniqueness(tree,tree2,tree2_size))
-    {
-        printf("error: ip lists are not unique\n");
-        return 1;
-    }
-    printf("success\n");
+    // printf("checking uniqueness in ip lists...\n");
+    // if(validate_tree_uniqueness(tree,tree2,tree2_size))
+    // {
+    //     printf("error: ip lists are not unique\n");
+    //     return 1;
+    // }
+    // printf("success\n");
 
-    printf("bloomfilter size: %lu bits\n",BLOOMFILTER_NUM_BITS);
+    // printf("bloomfilter size: %lu bits\n",BLOOMFILTER_NUM_BITS);
 
-    printf("Testing bloomfilter insertion\n");
-    if(test_hashing(tree,num_addrs,&bf))
-    {
-        printf("Bloomfilter insertion Failed!\n");
-        return 1;
-    }
-    else
-        printf("Bloomfilter insertion Success\n");
+    // printf("Testing bloomfilter insertion\n");
+    // if(test_hashing(tree,num_addrs,&bf))
+    // {
+    //     printf("Bloomfilter insertion Failed!\n");
+    //     return 1;
+    // }
+    // else
+    //     printf("Bloomfilter insertion Success\n");
 
     uint32_t collisions = test_collisions(tree,num_addrs,tree2,tree2_size,&bf);
 

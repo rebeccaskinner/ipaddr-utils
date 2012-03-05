@@ -27,50 +27,14 @@ int test_hashing(ip_tree_t* tree, uint32_t num_addrs, bloomfilter_t* bf)
     addrs = malloc(num_addrs * sizeof(uint32_t));
     found_addrs = iptree_get_sorted(tree,addrs);
 
-    bloomfilter_show(*bf);
     for(uint32_t i = 0; i < found_addrs; i++)
     {
-        printf("hasing %s\n",addr_to_string(addrs[i]));
         bloomfilter_insert(bf,addrs[i]);
         if(!bloomfilter_check(bf,addrs[i]))
         {
             printf("Failed to validated address insertion for %s (%u)\n",
                     addr_to_string(addrs[i]),addrs[i]);
             return 1;
-        }
-    }
-
-    return 0;
-}
-
-
-int test_conversions(ip_tree_t* tree, uint32_t num_addrs)
-{
-    uint32_t*  addrs;
-    uint32_t   found_addrs;
-    char real_string[512];
-    char converted_string[512];
-
-    addrs = malloc(num_addrs * sizeof(uint32_t));
-    found_addrs = iptree_get_sorted(tree,addrs);
-    for(uint32_t i = 0; i < found_addrs; i++)
-    {
-        strncpy(real_string,addr_to_string(addrs[i]),512);
-        strncpy(converted_string,
-                addr_to_string(
-                    vector_to_octets(
-                        octets_to_vector(addrs[i]))),512);
-        if(0 != strcmp(real_string,converted_string))
-        {
-            printf("conversion mismatch!\n");
-            printf("real string: %s",real_string);
-            printf("converted string: %s\n",converted_string);
-            printf("addr: %u\n",addrs[i]);
-            return 1;
-        }
-        else
-        {
-            printf("validated %s\n",real_string);
         }
     }
 
@@ -107,6 +71,23 @@ uint32_t test_collisions(ip_tree_t* tree1,
     return collisions;
 }
 
+static void test_bloomfilter_bit_setting(bloomfilter_t* bf)
+{
+    for(int i = 0; i < 43; i++)
+    {
+        BLOOMFILTER_SET_BIT(bf,i);
+        if(!BLOOMFILTER_GET_BIT(bf,i))
+        {
+            printf("Error: bit was set but shows as 0\n");
+        }
+    }
+
+    for(unsigned i = 0; i < BLOOMFILTER_NUM_BITS; i++)
+    {
+        printf("Bit %u is%s set\n",i,BLOOMFILTER_GET_BIT(bf,i)?"":" not");
+    }
+}
+
 ip_tree_t* load_tree(const char* fname, uint32_t* num_addrs)
 {
     ip_tree_t* tree;
@@ -120,11 +101,30 @@ ip_tree_t* load_tree(const char* fname, uint32_t* num_addrs)
     return tree;
 }
 
+int validate_tree_uniqueness(ip_tree_t* tree, ip_tree_t* t2, uint32_t t2_size)
+{
+    int rv = 1;
+    uint32_t* addrs = malloc(t2_size * sizeof(uint32_t));
+    uint32_t num_addrs = iptree_get_sorted(t2,addrs);
+
+    for(unsigned i = 0; i < num_addrs; i++)
+    {
+        if(iptree_addr_exists(addrs[i],tree)) goto cleanup;
+    }
+
+    rv = 0;
+
+cleanup:
+    free(addrs);
+    return rv;
+}
+
 int main(int argc, char** argv)
 {
     srand(time(NULL));
     bloomfilter_t bf;
     bloomfilter_init(&bf,0);
+
     if(argc != 3 || !argv || !argv[1] || !argv[2])
     {
         printf("usage: bftest <filename> <filename>\n");
@@ -136,28 +136,29 @@ int main(int argc, char** argv)
     ip_tree_t* tree  = load_tree(argv[1],&num_addrs);
     ip_tree_t* tree2 = load_tree(argv[2],&tree2_size);
 
-    // printf("Testing conversions... ");
-    // if(test_conversions(tree,num_addrs))
-    // {
-    //     printf("Failed!\n");
-    //     return 1;
-    // }
-    // else
-    //     printf("Success\n");
+    printf("checking uniqueness in ip lists...\n");
+    if(validate_tree_uniqueness(tree,tree2,tree2_size))
+    {
+        printf("error: ip lists are not unique\n");
+        return 1;
+    }
+    printf("success\n");
 
-    // printf("Testing bloomfilter insertion... ");
-    // if(test_hashing(tree,num_addrs,&bf))
-    // {
-    //     printf("Failed!\n");
-    //     return 1;
-    // }
-    // else
-    //     printf("Success\n");
+    printf("bloomfilter size: %lu bits\n",BLOOMFILTER_NUM_BITS);
+
+    printf("Testing bloomfilter insertion\n");
+    if(test_hashing(tree,num_addrs,&bf))
+    {
+        printf("Bloomfilter insertion Failed!\n");
+        return 1;
+    }
+    else
+        printf("Bloomfilter insertion Success\n");
 
     uint32_t collisions = test_collisions(tree,num_addrs,tree2,tree2_size,&bf);
 
     printf("%u collisions out of %u (%lf percent collision rate)\n",
-            collisions, tree2_size, ((double)tree2_size/(double)collisions));
+           collisions, tree2_size, 100.0*((double)collisions/(double)tree2_size));
 
     return 0;
 }

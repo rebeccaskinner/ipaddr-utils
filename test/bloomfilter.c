@@ -1,64 +1,86 @@
 #include <stdio.h>
-#include <limits.h>
+#include <string.h>
+#include <stdlib.h>
 #include "bloomfilter.h"
-
-#define BLOOMFILTER_HASH bloomfilter_hash1
 
 void bloomfilter_init(bloomfilter_t* bf, int val)
 {
-    *bf = (bloomfilter_t){val,val,val,val};
+    memset(bf->bf_data,val,BLOOMFILTER_NUM_INTS * sizeof(uint32_t));
 }
 
-void bloomfilter_show(bloomfilter_t bf)
+static int bloomfilter_get_bit(bloomfilter_t* bf, uint32_t bit)
 {
-    printf("%u:%u:%u:%u\n",bf[0], bf[1], bf[2], bf[3]);
+    return 0;
 }
 
-bloomfilter_t octets_to_vector(uint32_t addr)
+void bloomfilter_show(bloomfilter_t* bf)
 {
-    bloomfilter_t bf = (bloomfilter_t){
-        (addr >> 24),
-        (addr >> 16) & ((2<<24)-1),
-        (addr >>  8) & ((2<<16)-1),
-        (addr      ) & ((2<<8)-1)
-    };
-    return bf;
+    for(uint32_t i = 0; i < BLOOMFILTER_NUM_INTS; ++i)
+    {
+        printf("%u\n",bf->bf_data[i]);
+    }
 }
 
-uint32_t vector_to_octets(bloomfilter_t bf)
+static uint32_t murmur_hash(uint32_t k, uint32_t seed)
 {
-    return (uint32_t)(bf[0]<<24 | bf[1]<<16 | bf[2]<<8 | bf[3]);
+    const uint32_t m = 0x5bd1e995;
+    const uint32_t r = 24;
+    uint32_t h = seed ^ 4;
+    k *= m;
+    k ^= k >> r;
+    k *= m;
+    h *= m;
+    h ^= k;
+    h ^= h >> 13;
+    h *= m;
+    h ^= h >> 15;
+    return h % BLOOMFILTER_NUM_BITS;
 }
 
-/* vectorized hash function based on bob jenkins 32bit hash function */
-static bloomfilter_t bloomfilter_hash1(bloomfilter_t bf)
+static uint32_t* make_k_hashes(uint32_t addr, uint32_t k)
 {
-    bf = ~bf + (bf << 15);
-    bf =  bf ^ (bf >> 12);
-    bf =  bf + (bf <<  2);
-    bf =  bf ^ (bf >>  4);
-    bf =  bf * (bloomfilter_t){2057,2057,2057,2057};
-    bf =  bf ^ (bf >> 16);
-    return bf;
+    uint32_t* hashes = malloc(k * sizeof(uint32_t));
+    memset(hashes,0,k*sizeof(uint32_t));
+    uint32_t h1 = murmur_hash(addr,0);
+    for(unsigned i = 0; i < k; i++)
+    {
+        h1 = murmur_hash(addr, h1);
+        hashes[i] = h1;
+    }
+
+    return hashes;
 }
 
-static bloomfilter_t bloomfilter_hash2(bloomfilter_t bf)
+static void bloomfilter_insert_k(bloomfilter_t* bf, uint32_t addr, uint32_t k)
 {
-    return bf;
+    uint32_t* hashes = make_k_hashes(addr,k);
+    for(unsigned i = 0; i < k; i++)
+    {
+        BLOOMFILTER_SET_BIT(bf,hashes[i]);
+    }
+    free(hashes);
 }
 
 void bloomfilter_insert(bloomfilter_t* bf, uint32_t addr)
 {
-    *bf |= BLOOMFILTER_HASH(octets_to_vector(addr));
+    bloomfilter_insert_k(bf, addr, BLOOMFILTER_NUM_HASHES);
+}
+
+int bloomfilter_check_k(bloomfilter_t* bf, uint32_t addr, uint32_t k)
+{
+    uint32_t* hashes = make_k_hashes(addr,k);
+    for(unsigned i = 0; i < k; i++)
+    {
+        if(!BLOOMFILTER_GET_BIT(bf,hashes[i]))
+        {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 int bloomfilter_check(bloomfilter_t* bf, uint32_t addr)
 {
-    bloomfilter_t hashed = BLOOMFILTER_HASH(octets_to_vector(addr));
-    bloomfilter_t ref    = *bf & hashed;
-    return ((ref[0] == hashed[0]) &&
-            (ref[1] == hashed[1]) &&
-            (ref[2] == hashed[2]) &&
-            (ref[3] == hashed[3]));
+    return bloomfilter_check_k(bf, addr, BLOOMFILTER_NUM_HASHES);
 }
 

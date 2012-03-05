@@ -6,7 +6,6 @@ CFLAGS= -std=gnu99 \
 	-Wextra \
 	-Werror \
 	-Wno-unused \
-	-pedantic \
 	-g \
 	-ggdb \
 	-mtune=native \

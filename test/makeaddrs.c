@@ -88,7 +88,6 @@ int main(int argc, char** argv)
 
     for(size_t i = 0; i < unique_addrs; i++)
     {
-        printf("%s\n",addr_to_string(addr_sorted[i]));
         buffered_writer(addr_sorted[i],0);
     }
 

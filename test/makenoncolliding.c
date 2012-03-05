@@ -98,7 +98,6 @@ int main(int argc, char** argv)
     write(output_fd,&real_size,sizeof(uint32_t));
     for(uint32_t i = 0; i < real_size; i++)
     {
-        printf("%s\n",addr_to_string(addrs[i]));
         buffered_writer(addrs[i],0);
     }
     buffered_writer(0,1);

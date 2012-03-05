@@ -6,11 +6,7 @@ CFLAGS= -std=gnu99 \
 	-Wextra \
 	-Werror \
 	-Wno-unused \
-	-g \
-	-ggdb \
 	-mtune=native \
-	-ftree-vectorizer-verbose=5\
-	-ftree-vectorize\
 	-flto
 
 LFLAGS= -flto

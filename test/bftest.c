@@ -16,6 +16,7 @@
 #include "bloomfilter.h"
 #include "addr_utils.h"
 #include "iptree.h"
+#include "shm_queue.h"
 
 #define COMPLEMENT_TREE_SIZE 100000
 
@@ -119,6 +120,13 @@ cleanup:
     return rv;
 }
 
+void test_queue()
+{
+    uint32_t size = 10001;
+    shm_queue_t* q = shm_queue_new("/shm_test",&size);
+    printf("shm_queue is size: %u\n",size);
+}
+
 int main(int argc, char** argv)
 {
     srand(time(NULL));
@@ -130,6 +138,8 @@ int main(int argc, char** argv)
         printf("usage: bftest <filename> <filename>\n");
         return 1;
     }
+
+    test_queue();
 
     uint32_t num_addrs;
     uint32_t tree2_size;

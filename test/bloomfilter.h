@@ -3,7 +3,8 @@
 #include <stdint.h>
 
 #ifndef BLOOMFILTER_NUM_INTS
-    #define BLOOMFILTER_NUM_INTS (4096 * 24)
+    // #define BLOOMFILTER_NUM_INTS (4096 * 24)
+    #define BLOOMFILTER_NUM_INTS (8192)
 #endif
 
 #ifndef BLOOMFILTER_NUM_HASHES

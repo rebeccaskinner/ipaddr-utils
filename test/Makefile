@@ -9,7 +9,7 @@ CFLAGS= -std=gnu99 \
 	-mtune=native \
 	-flto
 
-LFLAGS= -flto
+LFLAGS= -flto -lrt
 
 SOURCES=$(shell echo *.c)
 OBJECTS=$(patsubst %.c,%.o,$(SOURCES))

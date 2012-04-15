@@ -1,3 +1,8 @@
+/* Copyright Tim Skinner 2012
+ * This source code is covered under the GNU Lesser General Public License.
+ * See the LICENSE file for the complete text of the license covering this
+ * file.
+ */
 #ifndef __BLOOMFILTER_H__
 #define __BLOOMFILTER_H__
 #include <stdint.h>

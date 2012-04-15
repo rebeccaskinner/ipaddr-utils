@@ -1,3 +1,8 @@
+/* Copyright Tim Skinner 2012
+ * This source code is covered under the GNU Lesser General Public License.
+ * See the LICENSE file for the complete text of the license covering this
+ * file.
+ */
 #ifndef __IP_TREE_H__
 #define __IP_TREE_H__
 #include <inttypes.h>

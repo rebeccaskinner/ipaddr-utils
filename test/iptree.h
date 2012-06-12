@@ -17,6 +17,14 @@
  * back out a sorted list of them.
  */
 
+/* If IPTREE_INCREMENT_REFCOUNT is set, then iptree_insert will
+ * increase the refcount for any address inserted into the tree,
+ * otherwise the refcount will be set to 1 if this is the first
+ * time the addresses is inserted, and will otherwise not touch
+ * the refcount */
+#define IPTREE_INCREMENT_REFCOUNT (1<<0)
+#define IPTREE_NO_INCREMENT_REFCOUNT (0)
+
 struct ip_node;
 struct ip_tree;
 
@@ -25,7 +33,9 @@ typedef struct ip_tree ip_tree_t;
 
 struct ip_node
 {
-    ip_node_t *left, *right;
+    ip_node_t *left;
+    ip_node_t *right;
+    uint8_t   refcount;
     uint32_t  ipaddr;
     uintptr_t parent;
 } __attribute__((aligned));
@@ -38,10 +48,11 @@ struct ip_tree
 } __attribute__((aligned));
 
 
-int iptree_add_addr(uint32_t addr, ip_tree_t* tree);
+ip_node_t* iptree_add_addr(uint32_t addr, ip_tree_t* tree, int flags);
 size_t iptree_get_sorted(ip_tree_t* tree, uint32_t* elems);
 ip_tree_t* iptree_new();
 ip_node_t* iptree_find(ip_node_t* key, ip_tree_t* tree);
 int iptree_addr_exists(uint32_t addr, ip_tree_t* tree);
+void iptree_rm_addr(uint32_t addr, ip_tree_t* tree);
 
 #endif

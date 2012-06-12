@@ -7,19 +7,12 @@
 #define __BLOOMFILTER_H__
 #include <stdint.h>
 
-#ifndef BLOOMFILTER_NUM_INTS
-    // #define BLOOMFILTER_NUM_INTS (4096 * 24)
-    #define BLOOMFILTER_NUM_INTS (8192)
-#endif
-
-#ifndef BLOOMFILTER_NUM_HASHES
-    #define BLOOMFILTER_NUM_HASHES (5)
-#endif
-
-#define BLOOMFILTER_NUM_BYTES   (BLOOMFILTER_NUM_INTS * sizeof(uint32_t))
-#define BLOOMFILTER_NUM_BITS    (8U * BLOOMFILTER_NUM_BYTES)
-#define BLOOMFILTER_ELEM_IDX(x) ((x) >> 5U)
-#define BLOOMFILTER_BIT_IDX(x)  ((x)&31U)
+#define BLOOMFILTER_NUM_INTS(bf)   ((bf)->bf_num_ints)
+#define BLOOMFILTER_NUM_HASHES(bf) ((bf)->bf_num_hashes)
+#define BLOOMFILTER_NUM_BYTES(bf)  (((bf)->bf_num_ints) * sizeof(uint32_t))
+#define BLOOMFILTER_NUM_BITS(bf)   ((BLOOMFILTER_NUM_BYTES((bf))) * 8U)
+#define BLOOMFILTER_ELEM_IDX(x)    ((x) >> 5U)
+#define BLOOMFILTER_BIT_IDX(x)     ((x)&31U)
 
 #define BLOOMFILTER_SET_BIT(__bf,__bitnum) \
 ({ \
@@ -41,12 +34,14 @@
 
 struct bloomfilter
 {
-    uint32_t bf_data[BLOOMFILTER_NUM_INTS];
+    uint32_t bf_num_ints;
+    uint32_t bf_num_hashes;
+    uint32_t bf_data[];
 } __attribute__((aligned));
 
 typedef struct bloomfilter bloomfilter_t;
 
-void bloomfilter_init(bloomfilter_t*,int val);
+bloomfilter_t* bloomfilter_new(int val, uint32_t size, uint32_t hashes);
 void bloomfilter_show(bloomfilter_t*);
 void bloomfilter_insert(bloomfilter_t*, uint32_t);
 int  bloomfilter_check(bloomfilter_t*, uint32_t);

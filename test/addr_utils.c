@@ -98,7 +98,7 @@ ip_tree_t* load_addr_file(const char* path, uint32_t* count)
     num_elems=mapped_addrs[0];
     for(size_t i = 1; i <= num_elems; i++)
     {
-        iptree_add_addr(mapped_addrs[i],tree);
+        iptree_add_addr(mapped_addrs[i],tree,IPTREE_NO_INCREMENT_REFCOUNT);
     }
 
     if(count) *count = num_elems;

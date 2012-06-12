@@ -6,10 +6,10 @@ CFLAGS= -std=gnu99 \
 	-Wextra \
 	-Werror \
 	-Wno-unused \
-	-mtune=native \
-	-flto
+        -ltr        \
+	-mtune=native
 
-LFLAGS= -flto -lrt
+LFLAGS= -lrt
 
 SOURCES=$(shell echo *.c)
 OBJECTS=$(patsubst %.c,%.o,$(SOURCES))
